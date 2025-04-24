@@ -1,10 +1,9 @@
-import { serve } from "bun";
+import Bun from "bun";
 import index from "./index.html";
-import { fetchPagesByConfig, getDataRoots } from './api/storyblok';
+import { fetchPagesByConfig } from './api/storyblok';
 import type { FetchConfig } from './api/storyblok';
-import { COUNTRIES, CONTENT_VERSIONS } from './constants';
 
-const server = serve({
+const server = Bun.serve({
   routes: {
     // Serve index.html for all unmatched routes.
     "/*": index,
