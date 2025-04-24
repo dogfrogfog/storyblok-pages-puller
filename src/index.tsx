@@ -8,83 +8,48 @@ const server = serve({
   routes: {
     // Serve index.html for all unmatched routes.
     "/*": index,
-
-    "/api/data-roots": {
-      async GET(req) {
+    "/api/pages": {
+      POST: async (req) => {
         try {
-          const dataRoots = getDataRoots();
-          return Response.json({
-            success: true,
-            data: dataRoots
-          });
-        } catch (error) {
+          // Check if it's a POST request and parse the body
+          if (req.method === 'POST') {
+            const body = await req.json();
+            
+            const config: FetchConfig = {
+              prefix: body.prefix || undefined,
+              ignorePath: body.ignorePath || undefined,
+              country: body.country || undefined,
+              contentVersion: body.contentVersion || undefined,
+              token: body.token || undefined
+            };
+
+            console.log(config);
+            
+            const pages = await fetchPagesByConfig(config);
+            return Response.json({
+              success: true,
+              data: pages
+            });
+          } else {
+            return new Response(
+              JSON.stringify({ 
+                success: false, 
+                error: 'Method not allowed' 
+              }),
+              { status: 405, headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+        } catch (error: any) {
           return new Response(
-            JSON.stringify({ success: false, error: 'Failed to get data roots' }),
+            JSON.stringify({ 
+              success: false, 
+              error: error.message || 'Failed to fetch pages' 
+            }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
           );
         }
       }
     },
-
-    "/api/countries": {
-      async GET(req) {
-        try {
-          return Response.json({
-            success: true,
-            data: COUNTRIES
-          });
-        } catch (error) {
-          return new Response(
-            JSON.stringify({ success: false, error: 'Failed to get countries' }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
-          );
-        }
-      }
-    },
-
-    "/api/content-versions": {
-      async GET(req) {
-        try {
-          return Response.json({
-            success: true,
-            data: CONTENT_VERSIONS
-          });
-        } catch (error) {
-          return new Response(
-            JSON.stringify({ success: false, error: 'Failed to get content versions' }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
-          );
-        }
-      }
-    },
-
-    "/api/pages": async (req) => {
-      try {
-        const url = new URL(req.url);
-        const params = url.searchParams;
-        
-        const config: FetchConfig = {
-          prefix: params.get('prefix') || undefined,
-          ignorePath: params.get('ignorePath') || undefined,
-          country: params.get('country') || undefined,
-          contentVersion: params.get('contentVersion') || undefined
-        };
-        
-        const pages = await fetchPagesByConfig(config);
-        return Response.json({
-          success: true,
-          data: pages
-        });
-      } catch (error: any) {
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: error.message || 'Failed to fetch pages' 
-          }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
-        );
-      }
-    }
   },
 
   development: process.env.NODE_ENV !== "production",

@@ -8,11 +8,12 @@ export interface FetchConfig {
   ignorePath?: string;
   country?: string;
   contentVersion?: string;
+  token?: string;
 }
 
 async function getSBcacheCVparameter(config: FetchConfig) {
   const searchParamsData = {
-    token: process.env.SB_PREVIEW_TOKEN,
+    token: config.token || '',
     version: config.contentVersion || DEFAULT_CONFIG.contentVersion,
   };
 
@@ -42,7 +43,7 @@ async function getSBcacheCVparameter(config: FetchConfig) {
 
 export async function fetchPagesByConfig(config: FetchConfig) {
   try {
-    const { prefix, ignorePath, country, contentVersion } = {
+    const { prefix, ignorePath, country, contentVersion, token } = {
       ...DEFAULT_CONFIG,
       ...config
     };
@@ -53,7 +54,7 @@ export async function fetchPagesByConfig(config: FetchConfig) {
 
     const commonFetchParams: Record<string, string> = {
       version: contentVersion,
-      token: process.env.SB_PREVIEW_TOKEN,
+      token,
       cv: cv.toString(),
       per_page: '1000',
       include_dates: '1',
@@ -66,12 +67,8 @@ export async function fetchPagesByConfig(config: FetchConfig) {
 
     const searchParams = new URLSearchParams(commonFetchParams);
 
-    // For requests without a prefix, we need to fetch stories instead of links
-    // since the links endpoint requires a starts_with parameter
-    const endpoint = prefix ? 'links' : 'stories';
-    
     const response = await fetch(
-      `${apiGate}/${endpoint}?${searchParams.toString()}`,
+      `${apiGate}/links?${searchParams.toString()}`,
       {
         method: 'GET',
       }
@@ -81,46 +78,6 @@ export async function fetchPagesByConfig(config: FetchConfig) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
-    if (endpoint === 'stories') {
-      // Handle stories endpoint response
-      const storiesData = await response.json();
-      const total = storiesData.total || 0;
-      let stories = storiesData.stories || [];
-      const lastPageNumber = Math.ceil(total / 1000);
-
-      // Fetch additional pages if pagination is required
-      for (let i = 2; i <= lastPageNumber; i++) {
-        const paginatedStoriesResponse = await fetch(
-          `${apiGate}/stories?${searchParams.toString()}&page=${i}`,
-          {
-            method: 'GET',
-          }
-        );
-
-        if (!paginatedStoriesResponse.ok) {
-          throw new Error(`HTTP error! Status: ${paginatedStoriesResponse.status}`);
-        }
-
-        const paginatedStoriesData = await paginatedStoriesResponse.json();
-        stories = stories.concat(paginatedStoriesData.stories || []);
-      }
-
-      // Filter stories and format them
-      const filteredStories = stories.filter((story: any) => {
-        // Skip configuration paths if ignorePath is specified
-        if (ignorePath && story.full_slug.includes(ignorePath)) return false;
-        
-        return true;
-      });
-
-      // Format the stories URLs
-      const formattedLinks = filteredStories.map((story: any) => {
-        // For stories API, we use full_slug
-        return story.full_slug;
-      });
-
-      return formattedLinks;
-    } else {
       // Handle links endpoint response (with prefix)
       const pagesData = await response.json();
       const total = Number(response.headers.get('Total'));
@@ -175,8 +132,7 @@ export async function fetchPagesByConfig(config: FetchConfig) {
         return formattedSlug;
       });
 
-      return formattedLinks;
-    }
+    return formattedLinks;
   } catch (error) {
     console.error(`Error fetching pages:`, error);
     throw error;

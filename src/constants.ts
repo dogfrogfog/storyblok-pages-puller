@@ -1,3 +1,4 @@
+// API Configuration
 export const API_CONFIGURATION = {
   API_GATES: {
     US: 'https://api-us.storyblok.com/v2/cdn',
@@ -8,20 +9,24 @@ export const API_CONFIGURATION = {
   },
 };
 
+// Data Roots with Domain Mapping
 export const DATA_ROOTS = {
-  'subfolder-prefix-1': {
-    domain: 'website1.com'
+  'jackpot-city': {
+    domain: 'jackpotcitycasino.com/us'
   },
-  'subfolder-prefix-2': {
-    domain: 'website2.com/us'
+  'spin-palace-casino': {
+    domain: 'spinpalacecasino.com/us'
   },
+  // Can add more data roots here
 };
 
+// Content Version Options
 export const CONTENT_VERSIONS = [
   { value: 'published', label: 'Published' },
   { value: 'draft', label: 'Draft' }
 ];
 
+// Country Options
 export const COUNTRIES = [
   { value: 'EU', label: '🇪🇺 Europe' },
   { value: 'US', label: '🇺🇸 United States' },
@@ -30,6 +35,7 @@ export const COUNTRIES = [
   { value: 'CN', label: '🇨🇳 China' }
 ];
 
+// Default Configuration
 export const DEFAULT_CONFIG = {
   ignorePath: 'configuration',
   prefix: 'jackpot-city',

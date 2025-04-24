@@ -11,23 +11,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CopyIcon, CheckIcon, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import { DEFAULT_CONFIG } from '@/constants';
+import { CONTENT_VERSIONS, COUNTRIES, DATA_ROOTS, DEFAULT_CONFIG } from '@/constants';
 
 interface FormConfig {
   prefix: string;
   ignorePath: string;
   country: string;
   contentVersion: string;
+  token: string;
 }
 
 // Use a non-empty string to represent "no prefix"
 const NO_PREFIX_VALUE = "_none";
 
 export default function StoryblokPages() {
-  // Data state
-  const [dataRoots, setDataRoots] = useState<string[]>([]);
-  const [countries, setCountries] = useState<{value: string, label: string}[]>([]);
-  const [contentVersions, setContentVersions] = useState<{value: string, label: string}[]>([]);
   const [pages, setPages] = useState<string[]>([]);
   
   // Form state
@@ -35,52 +32,14 @@ export default function StoryblokPages() {
     prefix: DEFAULT_CONFIG.prefix,
     ignorePath: DEFAULT_CONFIG.ignorePath,
     country: DEFAULT_CONFIG.country,
-    contentVersion: DEFAULT_CONFIG.contentVersion
+    contentVersion: DEFAULT_CONFIG.contentVersion,
+    token: ''
   });
   
   // UI state
   const [loading, setLoading] = useState<boolean>(false);
-  const [loadingOptions, setLoadingOptions] = useState<boolean>(true);
   const [copied, setCopied] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-
-  // Fetch initial options on component mount
-  useEffect(() => {
-    async function fetchOptions() {
-      setLoadingOptions(true);
-      try {
-        // Fetch data roots
-        const rootsResponse = await fetch('/api/data-roots');
-        const rootsData = await rootsResponse.json();
-        
-        // Fetch countries
-        const countriesResponse = await fetch('/api/countries');
-        const countriesData = await countriesResponse.json();
-        
-        // Fetch content versions
-        const versionsResponse = await fetch('/api/content-versions');
-        const versionsData = await versionsResponse.json();
-        
-        if (rootsData.success) {
-          setDataRoots(rootsData.data);
-        }
-        
-        if (countriesData.success) {
-          setCountries(countriesData.data);
-        }
-        
-        if (versionsData.success) {
-          setContentVersions(versionsData.data);
-        }
-      } catch (err) {
-        setError('Failed to load configuration options');
-      } finally {
-        setLoadingOptions(false);
-      }
-    }
-    
-    fetchOptions();
-  }, []);
 
   // Handle form changes
   const handleConfigChange = (key: keyof FormConfig, value: string) => {
@@ -118,7 +77,20 @@ export default function StoryblokPages() {
         params.append('contentVersion', formConfig.contentVersion);
       }
       
-      const response = await fetch(`/api/pages?${params.toString()}`);
+      const response = await fetch(`/api/pages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prefix: formConfig.prefix,
+          ignorePath: formConfig.ignorePath,
+          country: formConfig.country,
+          contentVersion: formConfig.contentVersion,
+          token: formConfig.token
+        })
+        
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -161,12 +133,7 @@ export default function StoryblokPages() {
               {/* Data Root / Prefix */}
               <div className="space-y-1">
                 <label className="text-xs font-medium text-gray-500">Project</label>
-                {loadingOptions ? (
-                  <div className="h-9 flex items-center pl-3 text-sm text-muted-foreground border rounded-md bg-gray-50">
-                    <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                    <span className="text-gray-500 text-xs">Loading...</span>
-                  </div>
-                ) : (
+                
                   <Select
                     value={formConfig.prefix}
                     onValueChange={(value) => handleConfigChange('prefix', value)}
@@ -175,14 +142,16 @@ export default function StoryblokPages() {
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {dataRoots.map((root) => (
+                      <SelectItem key={NO_PREFIX_VALUE} value={NO_PREFIX_VALUE}>
+                        No prefix
+                      </SelectItem>
+                      {Object.keys(DATA_ROOTS).map((root) => (
                         <SelectItem key={root} value={root}>
                           {root}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                )}
               </div>
               
               {/* Ignore Path */}
@@ -199,12 +168,7 @@ export default function StoryblokPages() {
               {/* Country */}
               <div className="space-y-1">
                 <label className="text-xs font-medium text-gray-500">Country</label>
-                {loadingOptions ? (
-                  <div className="h-9 flex items-center pl-3 text-sm text-muted-foreground border rounded-md bg-gray-50">
-                    <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                    <span className="text-gray-500 text-xs">Loading...</span>
-                  </div>
-                ) : (
+                
                   <Select
                     value={formConfig.country}
                     onValueChange={(value) => handleConfigChange('country', value)}
@@ -213,25 +177,19 @@ export default function StoryblokPages() {
                       <SelectValue placeholder="Select region" />
                     </SelectTrigger>
                     <SelectContent>
-                      {countries.map((country) => (
+                      {COUNTRIES.map((country) => (
                         <SelectItem key={country.value} value={country.value}>
                           {country.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                )}
               </div>
               
               {/* Content Version */}
               <div className="space-y-1">
                 <label className="text-xs font-medium text-gray-500">Status</label>
-                {loadingOptions ? (
-                  <div className="h-9 flex items-center pl-3 text-sm text-muted-foreground border rounded-md bg-gray-50">
-                    <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                    <span className="text-gray-500 text-xs">Loading...</span>
-                  </div>
-                ) : (
+                
                   <Select
                     value={formConfig.contentVersion}
                     onValueChange={(value) => handleConfigChange('contentVersion', value)}
@@ -240,15 +198,29 @@ export default function StoryblokPages() {
                       <SelectValue placeholder="Select version" />
                     </SelectTrigger>
                     <SelectContent>
-                      {contentVersions.map((version) => (
+                      {CONTENT_VERSIONS.map((version) => (
                         <SelectItem key={version.value} value={version.value}>
                           {version.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                )}
               </div>
+            </div>
+
+            {/* Token Input */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-500">Storyblok Preview Token</label>
+              <Input
+                type="password"
+                placeholder="Enter your Storyblok preview token"
+                value={formConfig.token}
+                onChange={(e) => handleConfigChange('token', e.target.value)}
+                className="h-9 bg-white border-gray-200 focus:ring-1 focus:ring-gray-200 text-sm"
+              />
+              <p className="text-xs text-gray-400">
+                Your token is used only for this request and is not stored anywhere.
+              </p>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2">
