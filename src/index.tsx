@@ -1,4 +1,3 @@
-import Bun from "bun";
 import index from "./index.html";
 import { fetchPagesByConfig } from './api/storyblok';
 import type { FetchConfig } from './api/storyblok';
