@@ -122,14 +122,8 @@ export async function fetchPagesByConfig(config: FetchConfig) {
         if (prefix && formattedSlug.startsWith(prefix + '/')) {
           formattedSlug = formattedSlug.replace(`${prefix}/`, '');
         }
-        
-        // Add domain if prefix is specified and exists in DATA_ROOTS
-        if (prefix && prefix in DATA_ROOTS) {
-          const domainBase = DATA_ROOTS[prefix as keyof typeof DATA_ROOTS]?.domain || '';
-          return `${domainBase}/${formattedSlug}`;
-        }
-        
-        return formattedSlug;
+
+        return `https://__your_domain__/${formattedSlug}`;
       });
 
     return formattedLinks;

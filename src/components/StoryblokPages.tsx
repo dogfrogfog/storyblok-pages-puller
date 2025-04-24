@@ -132,33 +132,20 @@ export default function StoryblokPages() {
             <div className="grid grid-cols-4 gap-4">
               {/* Data Root / Prefix */}
               <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-500">Project</label>
-                
-                  <Select
-                    value={formConfig.prefix}
-                    onValueChange={(value) => handleConfigChange('prefix', value)}
-                  >
-                    <SelectTrigger className="h-9 bg-white border-gray-200 focus:ring-1 focus:ring-gray-200 text-sm">
-                      <SelectValue placeholder="Select project" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem key={NO_PREFIX_VALUE} value={NO_PREFIX_VALUE}>
-                        No prefix
-                      </SelectItem>
-                      {Object.keys(DATA_ROOTS).map((root) => (
-                        <SelectItem key={root} value={root}>
-                          {root}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <label className="text-xs font-medium text-gray-500">prefix</label>
+                <Input
+                  placeholder="subfolder-name"
+                  value={formConfig.prefix}
+                  onChange={(e) => handleConfigChange('prefix', e.target.value)}
+                  className="h-9 bg-white border-gray-200 focus:ring-1 focus:ring-gray-200 text-sm"
+                />
               </div>
               
               {/* Ignore Path */}
               <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-500">Type</label>
+                <label className="text-xs font-medium text-gray-500">ignore path</label>
                 <Input
-                  placeholder="e.g. configuration"
+                  placeholder="/configuration/"
                   value={formConfig.ignorePath}
                   onChange={(e) => handleConfigChange('ignorePath', e.target.value)}
                   className="h-9 bg-white border-gray-200 focus:ring-1 focus:ring-gray-200 text-sm"
@@ -167,7 +154,7 @@ export default function StoryblokPages() {
               
               {/* Country */}
               <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-500">Country</label>
+                <label className="text-xs font-medium text-gray-500">country</label>
                 
                   <Select
                     value={formConfig.country}
@@ -188,7 +175,7 @@ export default function StoryblokPages() {
               
               {/* Content Version */}
               <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-500">Status</label>
+                <label className="text-xs font-medium text-gray-500">content type</label>
                 
                   <Select
                     value={formConfig.contentVersion}
