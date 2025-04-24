@@ -11,13 +11,12 @@ export const API_CONFIGURATION = {
 
 // Data Roots with Domain Mapping
 export const DATA_ROOTS = {
-  'jackpot-city': {
-    domain: 'jackpotcitycasino.com/us'
+  'mock-project-1': {
+    domain: 'example-domain-1.com'
   },
-  'spin-palace-casino': {
-    domain: 'spinpalacecasino.com/us'
-  },
-  // Can add more data roots here
+  'mock-project-2': {
+    domain: 'example-domain-2.com/us'
+  }
 };
 
 // Content Version Options
@@ -38,7 +37,7 @@ export const COUNTRIES = [
 // Default Configuration
 export const DEFAULT_CONFIG = {
   ignorePath: 'configuration',
-  prefix: 'jackpot-city',
+  prefix: undefined,
   country: 'US',
   contentVersion: 'published'
 }; 
